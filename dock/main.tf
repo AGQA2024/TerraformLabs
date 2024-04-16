@@ -7,10 +7,13 @@ terraform {
     }
 }
 
+// We're not saying how to get/make the image
+// we're saying what we want the endpoint to look like
 provider "docker" {}
 
 resource "docker_image" "web" {
   name = "httpd:latest"
+#   name = "nginx:latest"
 }
 
 resource "docker_container" "web" {
@@ -18,7 +21,7 @@ resource "docker_container" "web" {
   image = docker_container.web.image_id
 
   ports {
-    internal = 80 
-    external = 8080
+    internal = 80 // Forwarding traffic on?
+    external = 8080 //Docker listening on 8080
   }
 }
