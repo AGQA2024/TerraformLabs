@@ -18,7 +18,8 @@ resource "docker_image" "web" {
 
 resource "docker_container" "web" {
   name = "webserver"
-  image = docker_container.web.image_id
+#   image = docker_container.web.image_id // Was this the original?
+  image = docker_image.web.image_id
 
   ports {
     internal = 80 // Forwarding traffic on?
