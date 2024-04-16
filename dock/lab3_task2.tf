@@ -61,3 +61,8 @@
 
 #   depends_on = [aws_internet_gateway.labigw, aws_eip.static_ip]
 # }
+
+
+# https://registry.terraform.io/providers/hashicorp/aws/4.53.0/docs/resources/internet_gateway
+# https://registry.terraform.io/providers/hashicorp/aws/4.53.0/docs/resources/eip
+# https://registry.terraform.io/providers/hashicorp/aws/4.53.0/docs/resources/nat_gateway
