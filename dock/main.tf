@@ -26,3 +26,8 @@ resource "docker_container" "web" {
     external = 8080 //Docker listening on 8080
   }
 }
+
+# resource "aws_key_file" "test_key" {
+#   key_name = "lab_key"
+#   public_key = file("demo")
+# }
