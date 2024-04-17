@@ -1,163 +1,52 @@
-# terraform {
-#   required_providers {
-#     aws = {
-#       source  = "hashicorp/aws"
-#       version = "4.53.0"
-#     }
-#   }
+# variable "deployment_region" {
+#   description = "Region of deployment"
+#   type        = string
+#   default     = "us-west-1"
+# }
+# # Will fail at this stage due to AZ knock on
+
+# variable "region_az" {
+#   description = "Availability Zone"
+#   type        = string
+#   default     = "us-west-1a"
+# }
+# # Will fail at this stage due to AMI knock on
+# variable "instance_ami" {
+#   description = "EC2 ami"
+#   type        = string
+#   default     = "ami-0036b4598ccd42565"
 # }
 
-# provider "aws" {
-# #   region = "us-west-2"
-#     region = var.deployment_region
+# variable "ec2_instance_size" {
+#   description = "EC2 size"
+#   type        = string
+#   default     = "t2.micro"
 # }
 
-# resource "aws_vpc" "testvpc" {
-#   cidr_block = "10.1.0.0/16"
-#   tags = {
-#     Name = "Test VPC"
-#   }
+# variable "instance_count" {
+#   description = "Number of EC2 instances in each subnet"
+#   type        = number
+#   default     = 2
 # }
 
-# resource "aws_subnet" "public_subnet" {
-#   vpc_id            = aws_vpc.testvpc.id
-#   cidr_block        = "10.1.1.0/24"
-#   availability_zone = var.region_az
-#   tags = {
-#     Name = "PublicSubnet"
-#   }
-# }
+# terraform plan -var "ec2_instance_size=t1.micro" -var "instance_ami=ami-0d50e5e845c552faf" -out=out.tfplan
+# terraform show -json out.tfplan > output.json
+# nano output.json
 
-# resource "aws_subnet" "private_subnet" {
-#   vpc_id            = aws_vpc.testvpc.id
-#   cidr_block        = "10.1.2.0/24"
-#   availability_zone = var.region_az
-#   tags = {
-#     Name = "PrivateSubnet"
-#   }
-# }
+# To check what variables would be used by TF:
+# terraform plan -out=out.tfplan
+# terraform show -json out.tfplan > output.json
+# nano output.json
+# The nano editor isn't easy to navigate...
 
-# resource "aws_internet_gateway" "labigw" {
-#   vpc_id = aws_vpc.testvpc.id
+# terraform plan --var-file=file_1.tfvars --var-file=file_2.tfvars -out=out.tfplan
+# terraform show -json out.tfplan > output.json
+# nano output.json
 
-#   tags = {
-#     Name = "Lab IGW"
-#   }
-# }
+# terraform plan --var-file=file_1.tfvars --var-file=file_2.tfvars -var="region_az=from var-input" -out=out.tfplan
+# terraform show -json out.tfplan > output.json
+# nano output.json
 
-# resource "aws_route_table" "public_route_table" {
-#   vpc_id = aws_vpc.testvpc.id
-
-#   route {
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.labigw.id
-#   }
-#   tags = {
-#     Name = "Public route table"
-#   }
-#   depends_on = [aws_internet_gateway.labigw]
-# }
-
-# resource "aws_route_table" "private_route_table" {
-#   vpc_id = aws_vpc.testvpc.id
-
-#   tags = {
-#     Name = "Private route table"
-#   }
-# }
-
-# resource "aws_route_table_association" "pub_to_ig" {
-#   subnet_id      = aws_subnet.public_subnet.id
-#   route_table_id = aws_route_table.public_route_table.id
-#   depends_on     = [aws_internet_gateway.labigw]
-# }
-
-# resource "aws_route_table_association" "priv_to_nat" {
-#   subnet_id      = aws_subnet.private_subnet.id
-#   route_table_id = aws_route_table.private_route_table.id
-# }
-
-# resource "aws_security_group" "internal" {
-#   name        = "Internal SG"
-#   description = "SG for internal instances"
-#   vpc_id      = aws_vpc.testvpc.id
-
-#   ingress {
-#     description = "ALL"
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["10.1.1.0/24"]
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-#   tags = {
-#     Name = "Internal SG"
-#   }
-# }
-
-# resource "aws_security_group" "external" {
-#   name        = "External SG"
-#   description = "SG for front facing instances"
-#   vpc_id      = aws_vpc.testvpc.id
-
-#   ingress {
-#     description = "ALL"
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["10.1.2.0/24"]
-#   }
-
-#   ingress {
-#     description = "SSH"
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   tags = {
-#     Name = "External SG"
-#   }
-# }
-
-# resource "aws_instance" "PrivVM" {
-#   ami                         = var.instance_ami
-#   instance_type               = var.ec2_instance_size
-#   availability_zone           = var.region_az
-#   subnet_id                   = aws_subnet.private_subnet.id
-#   associate_public_ip_address = false
-#   vpc_security_group_ids      = ["${aws_security_group.internal.id}"]
-
-#   tags = {
-#     Name = "PrivVM"
-#   }
-#   depends_on = [aws_subnet.private_subnet, aws_security_group.internal]
-# }
-
-# resource "aws_instance" "PubVM" {
-#   ami                         = var.instance_ami
-#   instance_type               = var.ec2_instance_size
-#   availability_zone           = var.region_az
-#   subnet_id                   = aws_subnet.public_subnet.id
-#   associate_public_ip_address = true
-#   vpc_security_group_ids      = ["${aws_security_group.external.id}"]
-
-#   tags = {
-#     Name = "PubVM"
-#   }
-#   depends_on = [aws_subnet.public_subnet, aws_security_group.external]
-# }
+# terraform plan --var-file=file_1.tfvars --var-file=file_2.tfvars -var="region_az=from var-input" -out=out.tfplan
+# terraform show -json out.tfplan > output.json
+# nano output.json
