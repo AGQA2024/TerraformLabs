@@ -163,4 +163,8 @@
 #     Name = "${format("${"pub"}-${var.region_az}-${"%03d"}", count.index + 1)}"
 #   }
 #   depends_on = [aws_subnet.public_subnet, aws_security_group.external]
-# }
+# # }
+
+# https://developer.hashicorp.com/terraform/language/meta-arguments/count
+# https://developer.hashicorp.com/terraform/language/functions/format
+# https://developer.hashicorp.com/terraform/language/values/variables
